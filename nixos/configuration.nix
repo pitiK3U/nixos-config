@@ -8,28 +8,36 @@
   imports =
     [ # Include the results of the hardware scan.
       ./hardware-configuration.nix
-      ./vbox.nix
-      # <home-manager/nixos>
+      ./packages.nix
+      # ./vbox.nix
+
+      <home-manager/nixos>
+      ./home.nix
     ];
 
   # Use the GRUB 2 boot loader.
-  boot.loader.grub = {
-    enable = true;
-    version = 2;
-    # boot.loader.grub.efiSupport = true;
-    # boot.loader.grub.efiInstallAsRemovable = true;
-    # boot.loader.efi.efiSysMountPoint = "/boot/efi";
-    # Define on which hard drive you want to install Grub.
-    device = "/dev/sda"; # or "nodev" for efi only
-  };
+  # boot.loader.grub = {
+  #   enable = true;
+  #   version = 2;
+  #   boot.loader.grub.efiSupport = true;
+  #   boot.loader.grub.efiInstallAsRemovable = true;
+  #   boot.loader.efi.efiSysMountPoint = "/boot/efi";
+  #   # Define on which hard drive you want to install Grub.
+  #   device = "nodev"; # "/dev/sda"; # or "nodev" for efi only
+  # };
+
+  boot.loader.systemd-boot.enable = true;
+  boot.loader.efi.canTouchEfiVariables = true;
+
 
   # Fancy boot screen
-  boot.plymouth.enable = true;
+  # boot.plymouth.enable = true;
 
   boot.tmpOnTmpfs = true;
 
   networking.hostName = "nixos"; # Define your hostname.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
+  networking.networkmanager.enable = true;
 
   # Set your time zone.
   time.timeZone = "Europe/Prague";
@@ -38,7 +46,10 @@
   # Per-interface useDHCP will be mandatory in the future, so this generated config
   # replicates the default behaviour.
   networking.useDHCP = false;
-  networking.interfaces.enp0s3.useDHCP = true;
+  networking.interfaces.enp0s20f0u3c2.useDHCP = true;
+  networking.interfaces.enp0s31f6.useDHCP = true;
+  networking.interfaces.wlp2s0.useDHCP = true;
+
 
   # Configure network proxy if necessary
   # networking.proxy.default = "http://user:password@proxy:port/";
@@ -56,11 +67,11 @@
   # services.printing.enable = true;
 
   # Enable sound.
-  # sound.enable = true;
-  # hardware.pulseaudio.enable = true;
+  sound.enable = true;
+  hardware.pulseaudio.enable = true;
 
   # Enable touchpad support (enabled default in most desktopManager).
-  # services.xserver.libinput.enable = true;
+  services.xserver.libinput.enable = true;
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
   users.users.piti = {
@@ -70,42 +81,45 @@
 
   # List packages installed in system profile. To search, run:
   # $ nix search wget
-  environment.systemPackages = with pkgs; [
-    direnv
-    nix-direnv
+  # environment.systemPackages = with pkgs; [
+  #   # direnv
+  #   # nix-direnv
 
-    vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
-    wget
-    curl
-    git
-    openssh
-    firefox
-    coreutils
-    tmux
+  #   vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.
+  #   wget
+  #   curl
+  #   git
+  #   openssh
+  #   firefox
+  #   coreutils
+  #   tmux
 
-    vscode
+  #   vscode
 
-    # Virtualization
-    virtualbox
-    qemu
-    docker
+  #   # Virtualization
+  #   virtualbox
+  #   qemu
+  #   docker
 
-    # Modern UNIX
-    exa
-    bat
-    ripgrep
-    fzf
-    du-dust
-    difftastic
+  #   # Modern UNIX
+  #   # exa
+  #   # bat
+  #   # ripgrep
+  #   # fzf
+  #   # du-dust
+  #   # difftastic
 
-    dwm
-    dmenu
-    st
-    rxvt-unicode
-    dwl
-    river
-    qtile
-  ];
+  #   # Plasma things
+  #   libsForQt5.qtstyleplugin-kvantum
+
+  #   # dwm
+  #   # dmenu
+  #   # st
+  #   rxvt-unicode
+  #   # dwl
+  #   # river
+  #   # qtile
+  # ];
 
   # home-manager.users.piti = { pkgs, ... }: {
   #   import = [ /home/piti/.config/nixpkgs/home.nix ];
@@ -132,7 +146,7 @@
   # 
   # services.xserver.windowManager.dwl.enable = true;
   # services.xserver.windowManager.river.enable = true;
-  services.xserver.windowManager.dwm.enable = true;
+  # services.xserver.windowManager.dwm.enable = true;
   services.xserver.displayManager.lightdm.enable = true;
 
   # Configure keymap in X11
@@ -141,11 +155,11 @@
 
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.
-  programs.mtr.enable = true;
-  programs.gnupg.agent = {
-    enable = true;
-    enableSSHSupport = true;
-  };
+  # programs.mtr.enable = true;
+  # programs.gnupg.agent = {
+  #   enable = true;
+  #   enableSSHSupport = true;
+  # };
 
   # List services that you want to enable:
 
@@ -159,28 +173,28 @@
   # networking.firewall.enable = false;
 
   nix = {
-    settings.auto-optimise-store = true;
+    # settings.auto-optimise-store = true;
     package = pkgs.nixUnstable; # or versioned attributes like nix_2_4
     extraOptions = ''
       # add flakes support
-      experimental-features = nix-command flakes
+      # experimental-features = nix-command flakes
       # nix options for derivations to persist garbage collection
       keep-outputs = true
       keep-derivations = true
     '';
   };
 
-  environment.pathsToLink = [
-    "/share/nix-direnv"
-  ];
-  # if you also want support for flakes (this makes nix-direnv use the
-  # unstable version of nix):
-  nixpkgs.overlays = [
-    (self: super: {
-      nix-direnv = super.nix-direnv.override { enableFlakes = true; };
-      # st = super.st.overrideAttrs (old: { src = /home/piti/suckless/st ;});
-    } )
-  ];
+  # environment.pathsToLink = [
+  #   "/share/nix-direnv"
+  # ];
+  # # if you also want support for flakes (this makes nix-direnv use the
+  # # unstable version of nix):
+  # nixpkgs.overlays = [
+  #   (self: super: {
+  #     nix-direnv = super.nix-direnv.override { enableFlakes = true; };
+  #     # st = super.st.overrideAttrs (old: { src = /home/piti/suckless/st ;});
+  #   } )
+  # ];
 
   nixpkgs.config.allowUnfree = true;
 
@@ -190,7 +204,7 @@
   # this value at the release version of the first install of this system.
   # Before changing this value read the documentation for this option
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
-  system.stateVersion = "21.11"; # Did you read the comment?
+  system.stateVersion = "22.05"; # Did you read the comment?
 
 }
 
